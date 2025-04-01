@@ -57,6 +57,8 @@ const int debounceDelay = 200;
 unsigned long lastDHTUpdate = 0;
 const int dhtUpdateInterval = 2000;
 unsigned long lastServoMove = 0;
+unsigned long lastOutdoor = 0;
+unsigned long lastLiving = 0;
 unsigned long lastBuzzer = 0;
 int wrongCardCount = 0;
 const byte validCard[4] = {0x97, 0xBE, 0x70, 0x62}; // UID thẻ mở cửa: 97 BE 70 62
@@ -190,6 +192,7 @@ void loop()
       wrongCardCount++;
       if (wrongCardCount >= 3)
       {
+
         digitalWrite(BUZZER, HIGH);
         lastBuzzer = millis();
         Serial.println("Sai 3 lan - Bao dong!");
@@ -233,10 +236,10 @@ void loop()
     bool pirOutdoor = digitalRead(PIR_OUTDOOR);
     bool pirLiving = digitalRead(PIR_LIVING);
 
-    if (!isnan(temp) && temp > 25)
+    if (!isnan(temp) && temp > 32)
     {
       digitalWrite(RELAY_FAN, LOW);
-      Serial.println("Nhiet do > 30 - Quat: ON");
+      Serial.println("Nhiet do > 32 - Quat: ON");
     }
     else
     {
@@ -246,21 +249,29 @@ void loop()
     if (ldrValue < 200 && pirOutdoor)
     { // Trời tối (giá trị LDR cần thử nghiệm)
       digitalWrite(RELAY_LAMP_OUTDOOR, LOW);
+      lastOutdoor = millis();
       Serial.println("Troi toi + Chuyen dong ngoai san - Den ngoai san: ON");
     }
     else
     {
-      digitalWrite(RELAY_LAMP_OUTDOOR, HIGH);
+      if (lastOutdoor > 0 && millis() - lastOutdoor > 5000)
+      {
+        digitalWrite(RELAY_LAMP_OUTDOOR, HIGH);
+      }
     }
 
     if (ldrValue < 200 && pirLiving)
     {
       digitalWrite(RELAY_LAMP_LIVING, LOW);
       Serial.println("Troi toi + Chuyen dong phong khach - Den phong khach: ON");
+      lastLiving = millis();
     }
     else
     {
-      digitalWrite(RELAY_LAMP_LIVING, HIGH);
+      if (lastLiving > 0 && millis() - lastLiving > 5000)
+      {
+        digitalWrite(RELAY_LAMP_LIVING, HIGH);
+      }
     }
   }
   else
