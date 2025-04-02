@@ -18,7 +18,7 @@ char pass[] = "2345678901"; // Thay bằng mật khẩu WiFi
 #define VPIN_MODE V0         // Chế độ tự động/tay
 #define VPIN_LAMP_OUTDOOR V1 // Đèn ngoài sân
 #define VPIN_LAMP_LIVING V2  // Đèn phòng khách
-#define VPIN_LAMP3 V3        // Đèn 3
+#define VPIN_LAMP3 V3        // Đèn phòng ngủ
 #define VPIN_FAN V4          // Quạt
 #define VPIN_SERVO_OPEN V5   // Mở khóa qua app
 #define VPIN_TEMP V6         // Nhiệt độ
@@ -63,9 +63,6 @@ unsigned long lastBuzzer = 0;
 int wrongCardCount = 0;
 const byte validCard[4] = {0x97, 0xBE, 0x70, 0x62}; // UID thẻ mở cửa: 97 BE 70 62
 
-void printHex(byte *buffer, byte bufferSize);
-void printDec(byte *buffer, byte bufferSize);
-
 BLYNK_WRITE(VPIN_MODE)
 { // Chế độ tự động/tay qua app
   autoMode = param.asInt();
@@ -94,11 +91,11 @@ BLYNK_WRITE(VPIN_LAMP_LIVING)
 }
 
 BLYNK_WRITE(VPIN_LAMP3)
-{ // Đèn 3 qua app
+{ // Đèn Phòng ngủ qua app
   if (!autoMode)
   {
     digitalWrite(RELAY_LAMP3, param.asInt() ? LOW : HIGH);
-    Serial.print("Den 3 qua app: ");
+    Serial.print("Den ngu qua app: ");
     Serial.println(param.asInt() ? "ON" : "OFF");
   }
 }
@@ -202,7 +199,7 @@ void loop()
     rfid.PCD_StopCrypto1();
   }
 
-  // Đóng servo sau 2 giây và cập nhật trạng thái
+  // Đóng servo sau 5 giây và cập nhật trạng thái
   if (lastServoMove > 0 && millis() - lastServoMove > 5000)
   {
     servo.write(0);
@@ -330,23 +327,5 @@ void loop()
       Serial.println("Failed to read from DHT22 sensor!");
     }
     lastDHTUpdate = millis();
-  }
-}
-
-void printHex(byte *buffer, byte bufferSize)
-{
-  for (byte i = 0; i < bufferSize; i++)
-  {
-    Serial.print(buffer[i] < 0x10 ? " 0" : " ");
-    Serial.print(buffer[i], HEX);
-  }
-}
-
-void printDec(byte *buffer, byte bufferSize)
-{
-  for (byte i = 0; i < bufferSize; i++)
-  {
-    Serial.print(buffer[i] < 0x10 ? " 0" : " ");
-    Serial.print(buffer[i], DEC);
   }
 }
